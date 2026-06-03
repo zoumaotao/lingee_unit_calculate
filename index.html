@@ -95,21 +95,33 @@
 <!-- 弹窗 -->
 <div class="modal-overlay" id="modal-overlay">
     <div class="modal-box">
-        <h3>📋 填写信息并生成增购建议</h3>
+        <h3>填写信息并生成增购建议</h3>
         <div class="modal-form-item">
-            <label for="modal-org">机构</label>
-            <input type="text" id="modal-org" placeholder="请输入您所在的机构名称">
+            <label for="modal-identity">您的身份 <span style="color:#ef4444;">*</span></label>
+            <select id="modal-identity" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:6px; font-size:14px;">
+                <option value="">请选择</option>
+                <option value="金蝶伙伴员工">金蝶伙伴员工</option>
+                <option value="金蝶员工">金蝶员工</option>
+            </select>
         </div>
         <div class="modal-form-item">
-            <label for="modal-name">姓名</label>
+            <label for="modal-company">您所在的公司名称 <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="modal-company" placeholder="请输入您所在的公司名称">
+        </div>
+        <div class="modal-form-item">
+            <label for="modal-name">姓名 <span style="color:#ef4444;">*</span></label>
             <input type="text" id="modal-name" placeholder="请输入您的姓名">
         </div>
         <div class="modal-form-item">
-            <label for="modal-customer">客户名称</label>
+            <label for="modal-phone">手机号</label>
+            <input type="tel" id="modal-phone" placeholder="选填">
+        </div>
+        <div class="modal-form-item">
+            <label for="modal-customer">客户名称 <span style="color:#ef4444;">*</span></label>
             <input type="text" id="modal-customer" placeholder="请输入客户名称">
         </div>
         <div class="modal-form-item">
-            <label for="modal-budget">客户预算（万/年）</label>
+            <label for="modal-budget">客户预算 <span style="color:#ef4444;">*</span></label>
             <div style="display:flex; align-items:center; gap:8px;">
                 <input type="number" id="modal-budget" placeholder="例如：50" style="flex:1;" min="0">
                 <span style="font-size:14px; color:#475569; white-space:nowrap;">万/年</span>
@@ -122,10 +134,47 @@
     </div>
 </div>
 
+<!-- 反馈弹窗 -->
+<div class="modal-overlay" id="feedback-overlay">
+    <div class="modal-box">
+        <h3>反馈测算建议或其他意见</h3>
+        <div class="modal-form-item">
+            <label for="feedback-content">您的反馈内容</label>
+            <textarea id="feedback-content" rows="5" placeholder="请输入您的建议或意见..." style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:6px; box-sizing:border-box; font-size:14px; resize:vertical;"></textarea>
+        </div>
+        <div class="modal-form-item">
+            <label>附件（选填）</label>
+            <div id="feedback-file-area" style="border:2px dashed var(--border-color); border-radius:8px; padding:20px; text-align:center; cursor:pointer; background:#f8fafc;" onclick="document.getElementById('feedback-file-input').click()">
+                <div style="color:#64748b; font-size:13px;">点击选择文件或拖拽到此处</div>
+                <div style="color:#94a3b8; font-size:11px; margin-top:6px;">支持图片、PDF、Word、Excel、TXT、JSON、MD、HTML，单文件≤5MB，最多5个</div>
+                <input type="file" id="feedback-file-input" style="display:none;" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.json,.md,.html,.htm" onchange="handleFeedbackFiles(this.files)">
+            </div>
+            <div id="feedback-file-list" style="margin-top:8px;"></div>
+        </div>
+        <div class="modal-form-item">
+            <label for="feedback-name">姓名 <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="feedback-name" placeholder="请输入您的姓名">
+        </div>
+        <div class="modal-form-item">
+            <label for="feedback-contact">手机号 <span style="color:#ef4444;">*</span></label>
+            <input type="tel" id="feedback-contact" placeholder="请输入11位手机号">
+        </div>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closeFeedbackModal()">取消</button>
+            <button class="btn-submit" id="btn-feedback-submit" onclick="submitFeedback()">提交反馈</button>
+        </div>
+    </div>
+</div>
+
 <div class="container">
     <header>
-        <h1>灵基点数增购测算工具（仅供测算参考，以实际业务使用为准）</h1>
-        <p class="subtitle">金蝶灵基 AI 操作系统，对齐企业部门职能及日常业务量分布的AI消耗测算</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h1>灵基点数增购测算工具（仅供测算参考，以实际业务使用为准）</h1>
+                <p class="subtitle">金蝶灵基 AI 操作系统，对齐企业部门职能及日常业务量分布的AI消耗测算</p>
+            </div>
+            <a href="javascript:void(0)" onclick="openFeedbackModal()" style="font-size:13px; color:#64748b; text-decoration:underline; white-space:nowrap;">反馈测算建议或其他意见</a>
+        </div>
     </header>
 
     <div class="main-panel">
@@ -194,7 +243,7 @@
             <h2>3. 灵基专业版商业化报价方案</h2>
             
             <!-- 生成按钮放在最前面 -->
-            <button class="btn-generate" onclick="openModal()">📄 生成增购建议</button>
+            <button class="btn-generate" id="btn-generate" onclick="openModal()">生成增购建议</button>
 
             <!-- 结果区域默认隐藏 -->
             <div id="result-content" style="display: none; margin-top: 20px;">
@@ -451,7 +500,7 @@ function generateRecordRow(userInfo, calcData, detailFileName) {
         hour: '2-digit', minute: '2-digit'
     }).replace(/\//g, '-');
 
-    return `| ${timeStr} | ${userInfo.org} | ${userInfo.name} | ${userInfo.customer} | ${userInfo.budget} | ${calcData.seats} | ${calcData.tcvPrice} | [查看](data/${detailFileName}) |\n`;
+    return `| ${timeStr} | ${userInfo.identity} | ${userInfo.company} | ${userInfo.name} | ${userInfo.customer} | ${userInfo.budget} | ${calcData.seats} | ${calcData.tcvPrice} | [查看](data/${detailFileName}) |\n`;
 }
 
 // ===== 生成完整 Markdown 详情文件 =====
@@ -463,8 +512,10 @@ function generateDetailMarkdown(userInfo, calcData) {
     md += `---\n\n`;
     md += `## 基本信息\n\n`;
     md += `| 字段 | 内容 |\n|------|------|\n`;
-    md += `| 机构 | ${userInfo.org} |\n`;
+    md += `| 身份 | ${userInfo.identity} |\n`;
+    md += `| 公司名称 | ${userInfo.company} |\n`;
     md += `| 姓名 | ${userInfo.name} |\n`;
+    md += `| 手机号 | ${userInfo.phone} |\n`;
     md += `| 客户名称 | ${userInfo.customer} |\n`;
     md += `| 客户预算 | ${userInfo.budget} |\n`;
     md += `\n---\n\n`;
@@ -519,7 +570,7 @@ async function appendToRecords(recordRow) {
             content = decodeURIComponent(escape(atob(rawBase64)));
         } else if (getResp.status === 404) {
             // 文件不存在，创建初始内容
-            content = `# 灵基点数增购测算记录\n\n> 自动记录每次增购建议生成结果，详情见 data/ 目录对应文件\n\n| 时间 | 机构 | 姓名 | 客户名称 | 客户预算 | 席位数 | 年度TCV | 详情文件 |\n|------|------|------|----------|----------|--------|---------|----------|\n`;
+            content = `# 灵基点数增购测算记录\n\n> 自动记录每次增购建议生成结果，详情见 data/ 目录对应文件\n\n| 时间 | 身份 | 公司 | 姓名 | 客户名称 | 客户预算 | 席位数 | 年度TCV | 详情文件 |\n|------|------|------|------|----------|----------|--------|---------|----------|\n`;
         } else {
             throw new Error('获取 records.md 失败: ' + getResp.status);
         }
@@ -578,13 +629,15 @@ async function createDetailFile(fileName, content) {
 
 // ===== 提交 =====
 async function submitRecord() {
-    const org = document.getElementById('modal-org').value.trim();
+    const identity = document.getElementById('modal-identity').value;
+    const company = document.getElementById('modal-company').value.trim();
     const name = document.getElementById('modal-name').value.trim();
+    const phone = document.getElementById('modal-phone').value.trim();
     const customer = document.getElementById('modal-customer').value.trim();
     const budget = document.getElementById('modal-budget').value.trim();
 
-    if (!org || !name || !customer || !budget) {
-        alert('请填写所有字段');
+    if (!identity || !company || !name || !customer || !budget) {
+        alert('请填写所有必填字段');
         return;
     }
 
@@ -593,7 +646,7 @@ async function submitRecord() {
     btn.textContent = '提交中...';
 
     try {
-        const userInfo = { org, name, customer, budget: budget + '万/年' };
+        const userInfo = { identity, company, name, phone: phone || '-', customer, budget: budget + '万/年' };
 
         // 先触发计算，让第3部分显示结果
         calculateAll();
@@ -613,8 +666,11 @@ async function submitRecord() {
 
         closeModal();
         showToast('✅ 增购建议已生成并保存！');
-        document.getElementById('modal-org').value = '';
+        document.getElementById('btn-generate').textContent = '重新生成增购建议';
+        document.getElementById('modal-identity').value = '';
+        document.getElementById('modal-company').value = '';
         document.getElementById('modal-name').value = '';
+        document.getElementById('modal-phone').value = '';
         document.getElementById('modal-customer').value = '';
         document.getElementById('modal-budget').value = '';
     } catch (err) {
@@ -623,6 +679,201 @@ async function submitRecord() {
         closeModal();
         btn.disabled = false;
         btn.textContent = '确认提交';
+    }
+}
+
+// ===== 反馈弹窗 =====
+let feedbackFiles = [];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_COUNT = 5;
+
+function openFeedbackModal() {
+    document.getElementById('feedback-overlay').classList.add('active');
+}
+
+function closeFeedbackModal() {
+    document.getElementById('feedback-overlay').classList.remove('active');
+}
+
+document.getElementById('feedback-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeFeedbackModal();
+});
+
+// 拖拽支持
+const feedbackFileArea = document.getElementById('feedback-file-area');
+feedbackFileArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.style.borderColor = 'var(--primary-color)';
+    this.style.background = '#eff6ff';
+});
+feedbackFileArea.addEventListener('dragleave', function() {
+    this.style.borderColor = 'var(--border-color)';
+    this.style.background = '#f8fafc';
+});
+feedbackFileArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.style.borderColor = 'var(--border-color)';
+    this.style.background = '#f8fafc';
+    handleFeedbackFiles(e.dataTransfer.files);
+});
+
+function handleFeedbackFiles(files) {
+    for (let f of files) {
+        if (feedbackFiles.length >= MAX_FILE_COUNT) {
+            alert(`最多上传 ${MAX_FILE_COUNT} 个文件`);
+            break;
+        }
+        if (f.size > MAX_FILE_SIZE) {
+            alert(`文件 "${f.name}" 超过5MB限制，已跳过`);
+            continue;
+        }
+        feedbackFiles.push(f);
+    }
+    renderFeedbackFileList();
+}
+
+function removeFeedbackFile(idx) {
+    feedbackFiles.splice(idx, 1);
+    renderFeedbackFileList();
+}
+
+function renderFeedbackFileList() {
+    const list = document.getElementById('feedback-file-list');
+    if (feedbackFiles.length === 0) {
+        list.innerHTML = '';
+        return;
+    }
+    list.innerHTML = feedbackFiles.map((f, i) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:#f1f5f9; border-radius:4px; margin-bottom:4px; font-size:12px;">
+            <span>${f.name} (${(f.size/1024).toFixed(1)}KB)</span>
+            <span style="color:#ef4444; cursor:pointer;" onclick="removeFeedbackFile(${i})">删除</span>
+        </div>
+    `).join('');
+}
+
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function uploadFileToGitHub(fileName, base64Content) {
+    const { owner, repo, branch } = GITHUB_CONFIG;
+    const token = GITHUB_CONFIG.token;
+    const filePath = `feedback/attachments/${fileName}`;
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+    const resp = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: `上传反馈附件: ${fileName}`,
+            content: base64Content,
+            branch: branch
+        })
+    });
+
+    if (!resp.ok) throw new Error(`上传 ${fileName} 失败`);
+    const data = await resp.json();
+    return data.content.download_url;
+}
+
+async function submitFeedback() {
+    const content = document.getElementById('feedback-content').value.trim();
+    if (!content) {
+        alert('请输入反馈内容');
+        document.getElementById('feedback-content').focus();
+        return;
+    }
+    // 至少包含5个中文字符或10个英文字符，防止乱填
+    const chineseChars = (content.match(/[\u4e00-\u9fa5]/g) || []).length;
+    const totalChars = content.length;
+    if (chineseChars < 5 && totalChars < 10) {
+        alert('反馈内容过短，请描述清楚您的建议或意见（至少5个中文字或10个字符）');
+        document.getElementById('feedback-content').focus();
+        return;
+    }
+
+    const feedbackName = document.getElementById('feedback-name').value.trim();
+    if (!feedbackName) {
+        alert('请输入姓名');
+        document.getElementById('feedback-name').focus();
+        return;
+    }
+
+    const contact = document.getElementById('feedback-contact').value.trim();
+    if (!/^1[3-9]\d{9}$/.test(contact)) {
+        alert('请输入正确的11位手机号');
+        document.getElementById('feedback-contact').focus();
+        return;
+    }
+    const btn = document.getElementById('btn-feedback-submit');
+    btn.disabled = true;
+    btn.textContent = '提交中...';
+
+    try {
+        const now = new Date();
+        const timeStr = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+        // 上传附件
+        let attachmentLinks = [];
+        for (let f of feedbackFiles) {
+            const base64 = await fileToBase64(f);
+            const uniqueName = `${timeStr}_${f.name}`;
+            const downloadUrl = await uploadFileToGitHub(uniqueName, base64);
+            attachmentLinks.push(`- [${f.name}](${downloadUrl})`);
+        }
+
+        // 生成反馈 md
+        let mdContent = `# 用户反馈\n\n> 时间：${now.toLocaleString('zh-CN')}\n\n## 反馈人\n\n- 姓名：${feedbackName}\n- 手机号：${contact}\n\n## 反馈内容\n\n${content}\n\n`;
+        if (attachmentLinks.length > 0) {
+            mdContent += `## 附件\n\n${attachmentLinks.join('\n')}\n\n`;
+        }
+
+        const fileName = `feedback/${feedbackName}_反馈_${timeStr}.md`;
+        const { owner, repo, branch } = GITHUB_CONFIG;
+        const token = GITHUB_CONFIG.token;
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${fileName}`;
+
+        const resp = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: `用户反馈 (${now.toLocaleString('zh-CN')})`,
+                content: btoa(unescape(encodeURIComponent(mdContent))),
+                branch: branch
+            })
+        });
+
+        if (!resp.ok) throw new Error('提交失败');
+
+        closeFeedbackModal();
+        showToast('✅ 反馈已提交，感谢您的意见！');
+        document.getElementById('feedback-content').value = '';
+        document.getElementById('feedback-name').value = '';
+        document.getElementById('feedback-contact').value = '';
+        feedbackFiles = [];
+        renderFeedbackFileList();
+        document.getElementById('feedback-file-input').value = '';
+    } catch (err) {
+        showToast('❌ ' + err.message, true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '提交反馈';
     }
 }
 
