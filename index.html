@@ -500,7 +500,7 @@ function generateRecordRow(userInfo, calcData, detailFileName) {
         hour: '2-digit', minute: '2-digit'
     }).replace(/\//g, '-');
 
-    return `| ${timeStr} | ${userInfo.identity} | ${userInfo.company} | ${userInfo.name} | ${userInfo.customer} | ${userInfo.budget} | ${calcData.seats} | ${calcData.tcvPrice} | [查看](data/${detailFileName}) |\n`;
+    return `| ${timeStr} | ${userInfo.identity} | ${userInfo.company} | ${userInfo.name} | ${userInfo.customer} | ${userInfo.budget} | ${calcData.seats} | ${calcData.tcvPrice} | [查看](data/${encodeURIComponent(detailFileName)}) |\n`;
 }
 
 // ===== 生成完整 Markdown 详情文件 =====
@@ -910,7 +910,9 @@ async function submitFeedback() {
 
         // 追加汇总行到 feedback.md
         const feedbackSummary = content.length > 30 ? content.slice(0, 30) + '...' : content;
-        const feedbackRow = `| ${now.toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-')} | ${feedbackName} | ${contact} | ${feedbackSummary} | ${feedbackFiles.length} | [查看](${fileName}) |\n`;
+        const feedbackFileName = `${feedbackName}_反馈_${timeStr}.md`;
+        const encodedPath = `feedback/${encodeURIComponent(feedbackFileName)}`;
+        const feedbackRow = `| ${now.toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-')} | ${feedbackName} | ${contact} | ${feedbackSummary} | ${feedbackFiles.length} | [查看](${encodedPath}) |\n`;
         await appendToFeedbackMd(feedbackRow);
 
         closeFeedbackModal();
