@@ -198,7 +198,7 @@
             <div class="form-grid">
                 <div class="form-item">
                     <label for="complexity">单据/文件复杂度（影响单次耗点）</label>
-                    <select id="complexity">
+                    <select id="complexity" onchange="updateCostDisplay()">
                         <option value="standard">标准场景口径（基于线上常态化消耗）</option>
                         <option value="complex">防爆舱口径（重度合并报表/长合同条款对抗/多任务串联极值）</option>
                     </select>
@@ -378,6 +378,16 @@ function applyIndustryPreset() {
     if (mode === 'custom') return;
     for (let i = 0; i < renderIndex; i++) {
         document.getElementById(`freq-${i}`).value = elementMap[i].freq[mode];
+    }
+}
+
+// 实时更新表格中的单次消耗点数列
+function updateCostDisplay() {
+    const complexity = document.getElementById('complexity').value;
+    for (let i = 0; i < renderIndex; i++) {
+        const item = elementMap[i];
+        const costPerSession = complexity === 'standard' ? item.standard : item.complex;
+        document.getElementById(`cost-${i}`).innerText = `${costPerSession.toFixed(1)} 点/次`;
     }
 }
 
@@ -941,6 +951,7 @@ function showToast(msg, isError) {
 // 初始化：默认选中财务重度画像并填充频次（但不计算，等用户提交后才计算）
 document.getElementById('industry').value = 'finance_heavy';
 applyIndustryPreset();
+updateCostDisplay();
 </script>
 </body>
 </html>
