@@ -500,7 +500,7 @@ function generateRecordRow(userInfo, calcData, detailFileName) {
         hour: '2-digit', minute: '2-digit'
     }).replace(/\//g, '-');
 
-    return `| ${timeStr} | ${userInfo.identity} | ${userInfo.company} | ${userInfo.name} | ${userInfo.customer} | ${userInfo.budget} | ${calcData.seats} | ${calcData.tcvPrice} | [查看](data/${encodeURIComponent(detailFileName)}) |\n`;
+    return `| ${timeStr} | ${userInfo.identity} | ${userInfo.company} | ${userInfo.name} | ${userInfo.customer} | ${userInfo.budget} | ${calcData.seats} | ${calcData.consumeYear} | ${calcData.suggestPoints} | ${calcData.tcvPrice} | [查看](data/${encodeURIComponent(detailFileName)}) |\n`;
 }
 
 // ===== 生成完整 Markdown 详情文件 =====
@@ -570,7 +570,7 @@ async function appendToRecords(recordRow) {
             content = decodeURIComponent(escape(atob(rawBase64)));
         } else if (getResp.status === 404) {
             // 文件不存在，创建初始内容
-            content = `# 灵基点数增购测算记录\n\n> 自动记录每次增购建议生成结果，详情见 data/ 目录对应文件\n\n| 时间 | 身份 | 公司 | 姓名 | 客户名称 | 客户预算 | 席位数 | 年度TCV | 详情文件 |\n|------|------|------|------|----------|----------|--------|---------|----------|\n`;
+            content = `# 灵基点数增购测算记录\n\n> 自动记录每次增购建议生成结果，详情见 data/ 目录对应文件\n\n| 时间 | 身份 | 公司 | 姓名 | 客户名称 | 客户预算 | 席位数 | 年度所需点数 | 年度增购点数 | 年度TCV | 详情文件 |\n|------|------|------|------|----------|----------|--------|------------|------------|---------|----------|\n`;
         } else {
             throw new Error('获取 records.md 失败: ' + getResp.status);
         }
