@@ -144,7 +144,7 @@
         </div>
         <div class="modal-form-item">
             <label>附件（选填）</label>
-            <div id="feedback-file-area" style="border:2px dashed var(--border-color); border-radius:8px; padding:20px; text-align:center; cursor:pointer; background:#f8fafc;" onclick="document.getElementById('feedback-file-input').click()">
+            <div id="feedback-file-area" style="border:2px dashed var(--border-color); border-radius:8px; padding:18px; text-align:center; cursor:pointer; background:#f8fafc;" onclick="document.getElementById('feedback-file-input').click()">
                 <div style="color:#64748b; font-size:13px;">点击选择文件或拖拽到此处</div>
                 <div style="color:#94a3b8; font-size:11px; margin-top:6px;">支持图片、PDF、Word、Excel、TXT、JSON、MD、HTML，单文件≤5MB，最多5个</div>
                 <input type="file" id="feedback-file-input" style="display:none;" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.json,.md,.html,.htm" onchange="handleFeedbackFiles(this.files)">
@@ -788,6 +788,53 @@ async function uploadFileToGitHub(fileName, base64Content) {
     return data.content.download_url;
 }
 
+async function appendToFeedbackMd(row) {
+    const { owner, repo, branch } = GITHUB_CONFIG;
+    const token = GITHUB_CONFIG.token;
+    const feedbackPath = 'feedback.md';
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${feedbackPath}`;
+    const headers = {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+    };
+
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        const getResp = await fetch(url, { headers });
+
+        let content = '';
+        let sha = null;
+
+        if (getResp.ok) {
+            const fileData = await getResp.json();
+            sha = fileData.sha;
+            const rawBase64 = fileData.content.replace(/\n/g, '');
+            content = decodeURIComponent(escape(atob(rawBase64)));
+        } else if (getResp.status === 404) {
+            content = `# 用户反馈汇总\n\n> 自动记录每次反馈提交，详情见 feedback/ 目录对应文件\n\n| 时间 | 姓名 | 手机号 | 反馈摘要 | 附件数 | 详情文件 |\n|------|------|--------|----------|--------|----------|\n`;
+        } else {
+            return; // 静默失败，不影响主流程
+        }
+
+        content += row;
+        const body = {
+            message: `更新反馈汇总`,
+            content: btoa(unescape(encodeURIComponent(content))),
+            branch: branch
+        };
+        if (sha) body.sha = sha;
+
+        const putResp = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(body) });
+        if (putResp.ok) return;
+        if (putResp.status === 409 && attempt < maxRetries) {
+            await new Promise(r => setTimeout(r, 500 * attempt));
+            continue;
+        }
+        return; // 静默失败
+    }
+}
+
 async function submitFeedback() {
     const content = document.getElementById('feedback-content').value.trim();
     if (!content) {
@@ -860,6 +907,11 @@ async function submitFeedback() {
         });
 
         if (!resp.ok) throw new Error('提交失败');
+
+        // 追加汇总行到 feedback.md
+        const feedbackSummary = content.length > 30 ? content.slice(0, 30) + '...' : content;
+        const feedbackRow = `| ${now.toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-')} | ${feedbackName} | ${contact} | ${feedbackSummary} | ${feedbackFiles.length} | [查看](${fileName}) |\n`;
+        await appendToFeedbackMd(feedbackRow);
 
         closeFeedbackModal();
         showToast('✅ 反馈已提交，感谢您的意见！');
